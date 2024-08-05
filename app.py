@@ -185,18 +185,19 @@ def generate_report():
 
     elements.append(Paragraph("AI Generated Water Quality Report", style_heading))
     elements.append(Spacer(1, 12))
-    elements.append(Paragraph("Detailed Analysis", style_subheading))
+    elements.append(Paragraph("Comparison of Water Quality Indices across various locations.", style_subheading))
     elements.append(Spacer(1, 12))
 
     for item in request_data:
-        elements.append(Paragraph(f"Location: {item['LOCATIONS']}, State: {item['STATE']}", style_subheading))
+        elements.append(Paragraph(f"Location: {item['LOCATIONS']}", style_subheading))
+        elements.append(Paragraph(f"State: {item['STATE']}", style_normal))
         elements.append(Spacer(1, 12))
 
         query = f"""
         Provide a detailed analysis of the water quality in {item['LOCATIONS']} at {item['STATE']} based on the following data:
         BOD: {item.get('BOD')}, CONDUCTIVITY: {item.get('CONDUCTIVITY')}, DO: {item.get('DO')}, 
-        FECAL_COLIFORM: {item.get('FECAL_COLIFORM')}, NITRATE_N_NITRITE_N:         {item.get('NITRATE_N_NITRITE_N')},
-                STATION_CODE: {item.get('STATION_CODE')}, TEMP: {item.get('TEMP')}, TOTAL_COLIFORM: {item.get('TOTAL_COLIFORM')}, 
+                FECAL_COLIFORM: {item.get('FECAL_COLIFORM')}, NITRATE_N_NITRITE_N: {item.get('NIT        RATE_N_NITRITE_N')}, 
+        STATION_CODE: {item.get('STATION_CODE')}, TEMP: {item.get('TEMP')}, TOTAL_COLIFORM: {item.get('TOTAL_COLIFORM')}, 
         pH: {item.get('pH')}
         Analyze these parameters in context with typical environmental factors and provide insights based on current environmental science.
         Include the following sections:
@@ -234,30 +235,6 @@ def generate_report():
     buffer.seek(0)
     return send_file(buffer, as_attachment=True, download_name="water_quality_report.pdf", mimetype='application/pdf')
 
-@app.route('/api/predict_future', methods=['POST'])
-def predict_future():
-    location = request.json.get('location')
-    parameter = request.json.get('parameter')
-
-    if not location or not parameter:
-        return jsonify({'error': 'Invalid input'}), 400
-
-    # Prepare the query for the AI model
-    query = f"""
-    Predict the future levels of {parameter} in {location} based on current and historical data.
-    Provide a detailed analysis and prediction for the next 5 years, considering environmental factors and trends.
-    """
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
-    headers = {'Content-Type': 'application/json'}
-    payload = {"contents": [{"parts": [{"text": query}]}]}
-
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        ai_response = response.json()
-        return jsonify(ai_response)
-    else:
-        return jsonify({'error': 'Failed to get AI response'}), response.status_code
-
 if __name__ == '__main__':
     app.run(debug=True)
+
